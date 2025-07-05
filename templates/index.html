@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" data-aos="fade-in">
+    <div class="hero-content">
+        <h1 class="hero-title">Unlimited Movies, TV Shows, and More</h1>
+        <p class="hero-subtitle">Watch anywhere. Cancel anytime.</p>
+        <div class="hero-buttons">
+            <a href="#featured" class="btn btn-primary">Watch Now</a>
+        </div>
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-slider">
+        {% for movie in featured_movies %}
+        <div class="hero-slide" style="background-image: url('{{ movie.banner_url }}');"></div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Section -->
+<section id="featured" class="section" data-aos="fade-up">
+    <h2 class="section-title">Featured Today</h2>
+    <div class="movie-carousel">
+        {% for movie in featured_movies %}
+        <div class="movie-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+            <a href="{{ url_for('main.movie_detail', movie_id=movie.id) }}">
+                <div class="movie-poster">
+                    <img src="{{ movie.poster_url }}" alt="{{ movie.title }}">
+                    <div class="movie-overlay">
+                        <div class="play-btn"><i class="fas fa-play"></i></div>
+                        <div class="movie-info">
+                            <h3>{{ movie.title }}</h3>
+                            <div class="movie-meta">
+                                <span>{{ movie.release_year }}</span>
+                                <span class="rating"><i class="fas fa-star"></i> {{ movie.rating }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Movies by Genre -->
+{% for genre, movies in movies_by_genre.items() %}
+<section class="section" data-aos="fade-up">
+    <div class="section-header">
+        <h2 class="section-title">{{ genre }}</h2>
+        <a href="#" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <div class="movie-grid">
+        {% for movie in movies %}
+        <div class="movie-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+            <div class="movie-poster-container">
+                <a href="{{ url_for('main.movie_detail', movie_id=movie.id) }}" class="movie-link">
+                    <div class="movie-poster">
+                        <img src="{{ movie.poster_url if movie.poster_url else 'https://via.placeholder.com/300x450?text=No+Poster' }}" alt="{{ movie.title }}">
+                        <div class="movie-overlay">
+                            <div class="play-btn"><i class="fas fa-play"></i></div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="movie-details">
+                <h3 class="movie-title">{{ movie.title }}</h3>
+                <div class="movie-meta">
+                    <span class="year">{{ movie.release_year if movie.release_year else 'N/A' }}</span>
+                    <span class="rating"><i class="fas fa-star"></i> {{ "%.1f"|format(movie.rating) if movie.rating else 'N/A' }}</span>
+                </div>
+                {% if movie.genre %}
+                <div class="movie-genre">{{ movie.genre }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endfor %}
+
+{% endblock %}

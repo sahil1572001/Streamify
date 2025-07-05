@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="movie-detail" data-aos="fade-in">
+    <div class="movie-backdrop" style="background-image: url('{{ movie.banner_url }}');">
+        <div class="backdrop-overlay"></div>
+    </div>
+    
+    <div class="movie-content">
+        <div class="movie-poster" data-aos="fade-right">
+            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}">
+        </div>
+        
+        <div class="movie-info" data-aos="fade-left">
+            <h1 class="movie-title"><span id="movie-title-text">{{ movie.title }}</span> <span class="release-year">({{ movie.release_year }})</span></h1>
+            
+            <div class="movie-meta">
+                <span class="rating"><i class="fas fa-star"></i> {{ movie.rating }}/10</span>
+                <span class="genre">{{ movie.genre }}</span>
+                <span class="duration"><i class="far fa-clock"></i> 2h 30m</span>
+            </div>
+            
+            <div class="movie-actions">
+                {% if movie.video_url %}
+                <button class="btn btn-primary btn-play" id="play-movie">
+                    <i class="fas fa-play"></i> Watch Now
+                </button>
+                {% else %}
+                <button class="btn btn-primary btn-play" disabled>
+                    <i class="fas fa-play"></i> Coming Soon
+                </button>
+                {% endif %}
+                <button class="btn btn-icon" id="add-to-list" title="Add to My List">
+                    <i class="far fa-plus"></i>
+                </button>
+                <button class="btn btn-icon" id="add-to-favorites" title="Add to Favorites">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            
+            <!-- Video Player Modal -->
+            <div id="video-modal" class="video-modal">
+                <div class="video-modal-content">
+                    <button class="close-video">&times;</button>
+                    <div class="video-container">
+                        <video id="movie-player" controls>
+                            <source src="{{ movie.video_url if movie.video_url else '' }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="movie-description">
+                <h3>Overview</h3>
+                <p>{{ movie.description }}</p>
+            </div>
+            
+            <div class="movie-cast">
+                <h3>Cast</h3>
+                <div class="cast-scroll">
+                    <div class="cast-member">
+                        <div class="cast-photo" style="background-image: url('https://randomuser.me/api/portraits/men/1.jpg');"></div>
+                        <span class="cast-name">Actor One</span>
+                        <span class="cast-role">Character Name</span>
+                    </div>
+                    <div class="cast-member">
+                        <div class="cast-photo" style="background-image: url('https://randomuser.me/api/portraits/women/2.jpg');"></div>
+                        <span class="cast-name">Actor Two</span>
+                        <span class="cast-role">Character Name</span>
+                    </div>
+                    <!-- More cast members -->
+                </div>
+            </div>
+            
+            <div class="similar-movies">
+                <h3>More Like This</h3>
+                <div class="similar-scroll">
+                    {% for similar_movie in similar_movies %}
+                    <a href="{{ url_for('main.movie_detail', movie_id=similar_movie.id) }}" class="similar-movie">
+                        <div class="movie-poster">
+                            <img src="{{ similar_movie.poster_url }}" alt="{{ similar_movie.title }}">
+                            <div class="movie-overlay">
+                                <div class="play-btn">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                                <div class="movie-info">
+                                    <h3>{{ similar_movie.title }}</h3>
+                                    <div class="movie-meta">
+                                        {% if similar_movie.release_year %}
+                                        <span>{{ similar_movie.release_year }}</span>
+                                        {% endif %}
+                                        {% if similar_movie.rating %}
+                                        <span class="rating"><i class="fas fa-star"></i> {{ "%.1f"|format(similar_movie.rating) }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+   
+{% endblock %}

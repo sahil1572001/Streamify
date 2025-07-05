@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Movies Header -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h1 class="section-title">All Movies</h1>
+            <div class="filters">
+                <form method="get" class="filter-form">
+                    <div class="form-group">
+                        <label for="genre">Genre:</label>
+                        <select name="genre" id="genre" onchange="this.form.submit()">
+                            <option value="all" {% if not current_genre %}selected{% endif %}>All Genres</option>
+                            {% for genre in all_genres %}
+                            <option value="{{ genre }}" {% if current_genre==genre %}selected{% endif %}>{{ genre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sort">Sort By:</label>
+                        <select name="sort" id="sort" onchange="this.form.submit()">
+                            <option value="rating_desc" {% if current_sort=='rating_desc' %}selected{% endif %}>Rating (High to Low)</option>
+                            <option value="rating_asc" {% if current_sort=='rating_asc' %}selected{% endif %}>Rating (Low to High)</option>
+                            <option value="title_asc" {% if current_sort=='title_asc' %}selected{% endif %}>Title (A-Z)</option>
+                            <option value="title_desc" {% if current_sort=='title_desc' %}selected{% endif %}>Title (Z-A)</option>
+                            <option value="year_desc" {% if current_sort=='year_desc' %}selected{% endif %}>Year (Newest First)</option>
+                            <option value="year_asc" {% if current_sort=='year_asc' %}selected{% endif %}>Year (Oldest First)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Movies by Genre -->
+        {% if current_genre %}
+            <h2 class="genre-title">{{ current_genre }}</h2>
+            <div class="movie-scroll-container">
+                <div class="movie-scroll">
+                    {% for movie in movies_by_genre[current_genre] %}
+                    <div class="movie-card" data-aos="fade-up">
+                        <a href="{{ url_for('main.movie_detail', movie_id=movie.id) }}" class="movie-link">
+                            <div class="movie-poster">
+                                <img src="{{ movie.poster_url if movie.poster_url else 'https://via.placeholder.com/300x450?text=No+Poster' }}" alt="{{ movie.title }}">
+                                <div class="movie-overlay">
+                                    <div class="play-btn"><i class="fas fa-play"></i></div>
+                                    <div class="movie-info">
+                                        <h3>{{ movie.title }}</h3>
+                                        <div class="movie-meta">
+                                            <span class="year">{{ movie.release_year if movie.release_year else 'N/A' }}</span>
+                                            <span class="rating"><i class="fas fa-star"></i> {{ "%.1f"|format(movie.rating) if movie.rating else 'N/A' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            {% for genre, movies in movies_by_genre.items() %}
+                {% if movies %}
+                    <div class="genre-section">
+                        <h2 class="genre-title">{{ genre }}</h2>
+                        <div class="movie-scroll-container">
+                            <div class="movie-scroll">
+                                {% for movie in movies %}
+                                <div class="movie-card" data-aos="fade-up">
+                                    <a href="{{ url_for('main.movie_detail', movie_id=movie.id) }}" class="movie-link">
+                                        <div class="movie-poster">
+                                            <img src="{{ movie.poster_url if movie.poster_url else 'https://via.placeholder.com/300x450?text=No+Poster' }}" alt="{{ movie.title }}">
+                                            <div class="movie-overlay">
+                                                <div class="play-btn"><i class="fas fa-play"></i></div>
+                                                <div class="movie-info">
+                                                    <h3>{{ movie.title }}</h3>
+                                                    <div class="movie-meta">
+                                                        <span class="year">{{ movie.release_year if movie.release_year else 'N/A' }}</span>
+                                                        <span class="rating"><i class="fas fa-star"></i> {{ "%.1f"|format(movie.rating) if movie.rating else 'N/A' }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Additional styles for the movies page */
+.section {
+    padding: 2rem 0;
+    margin-top: 2rem;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.filters {
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+}
+
+.filter-form {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+}
+
+.form-group {
+    position: relative;
+    margin: 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group select {
+    min-width: 180px;
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat, repeat;
+    background-position: right 0.7em top 50%, 0 0;
+    background-size: 0.65em auto, 100%;
+    padding-right: 2.5em;
+}
+
+.form-group select:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: #666;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.3);
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Remove default arrow in IE */
+.form-group select::-ms-expand {
+    display: none;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+@media (max-width: 768px) {
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 0.75rem;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.page-link.active {
+    background-color: var(--primary-color);
+    font-weight: 600;
+}
+
+.ellipsis {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    color: #777;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .filter-form {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    select {
+        width: 180px;
+    }
+}
+</style>
+{% endblock %}

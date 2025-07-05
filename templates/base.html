@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamify - Your Ultimate Streaming Platform</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <a href="{{ url_for('main.index') }}">STREAMIFY</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('main.index') }}" class="{% if request.endpoint == 'main.index' %}active{% endif %}">Home</a>
+                <a href="{{ url_for('main.all_movies') }}" class="{% if request.endpoint == 'main.all_movies' %}active{% endif %}">Movies</a>
+                <a href="#series">TV Shows</a>
+                <a href="#trending">Trending</a>
+                <a href="#new">New & Popular</a>
+                <a href="#my-list">My List</a>
+            </div>
+            <div class="nav-right">
+                <div class="recommendation-search">
+                    <input type="text" id="recommendation-search" placeholder="Get movie recommendations...">
+                    <button id="recommend-btn" class="nav-icon"><i class="fas fa-magic"></i></button>
+                </div>
+                <button id="search-btn" class="nav-icon"><i class="fas fa-search"></i></button>
+                <div class="profile">
+                    <img src="{{ url_for('static', filename='images/avatar.png') }}" alt="Profile">
+                    <div class="dropdown">
+                        <a href="#">Account</a>
+                        <a href="#">Settings</a>
+                        <a href="#">Sign Out</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="main-search" placeholder="Search for movies, TV shows..." autocomplete="off">
+        <button id="search-btn-main" class="search-action-btn"><i class="fas fa-search"></i></button>
+        <button class="close-search"><i class="fas fa-times"></i></button>
+        <div class="search-suggestions">
+            <!-- Search suggestions will appear here -->
+        </div>
+        
+        <!-- Search Results -->
+        <div id="search-results" class="search-results">
+            <div class="search-results-container" id="search-results-container">
+                <!-- Search results will be dynamically inserted here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Search Results Section -->
+    <section id="search-results" class="search-results" style="display: none; padding: 60px 0; background: #141414;">
+        <div class="container">
+            <h2 class="section-title">Search Results</h2>
+            <div id="search-results-container" class="search-results-grid">
+                <!-- Search results will be inserted here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">STREAMIFY</div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Navigation</h4>
+                    <a href="#">Home</a>
+                    <a href="#movies">Movies</a>
+                    <a href="#series">TV Shows</a>
+                    <a href="#trending">Trending</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Help</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Feedback</a>
+                </div>
+            </div>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Streamify. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+    </script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/recommendations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/video.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

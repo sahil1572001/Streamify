@@ -1,0 +1,292 @@
+# Streamify OTT Platform - Complete Project Documentation
+
+## Table of Contents
+1. Project Overview
+2. Backend Structure
+3. Frontend Structure
+4. Database Schema
+5. Setup Instructions
+6. Configuration
+7. Deployment
+
+## 1. Project Overview
+Streamify is a modern OTT (Over-The-Top) streaming platform that allows users to browse, search, and watch movies and TV shows. The platform includes features like user authentication, movie recommendations, watchlists, and user profiles.
+
+## 2. Backend Structure
+
+### 2.1 Main Application (app.py)
+```python
+# [Previous app.py content remains the same]
+```
+
+### 2.2 Database Models (models.py)
+```python
+# [Previous models.py content remains the same]
+```
+
+### 2.3 Routes (routes/main_routes.py)
+```python
+# [Previous main_routes.py content remains the same]
+```
+
+## 3. Frontend Structure
+
+### 3.1 Base Template (templates/base.html)
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamify - Your Ultimate Streaming Platform</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation and other common elements -->
+    {% block content %}{% endblock %}
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/recommendations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/video.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+```
+
+### 3.2 Main Styles (static/css/style.css)
+```css
+/* Global Styles */
+:root {
+    --primary-color: #e50914;
+    --secondary-color: #141414;
+    --text-color: #ffffff;
+    --text-secondary: #e5e5e5;
+    --bg-color: #141414;
+    --bg-secondary: #181818;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Navigation */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px 4%;
+    z-index: 1000;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent);
+    transition: var(--transition);
+}
+
+/* Additional styles... */
+```
+
+### 3.3 Main JavaScript (static/js/main.js)
+```javascript
+// DOM Elements
+const searchBtn = document.getElementById('search-btn');
+const searchContainer = document.querySelector('.search-container');
+const closeSearch = document.querySelector('.close-search');
+const mainSearch = document.getElementById('main-search');
+const searchResults = document.getElementById('search-results');
+
+// Toggle Search
+searchBtn.addEventListener('click', () => {
+    searchContainer.classList.add('active');
+    mainSearch.focus();
+});
+
+closeSearch.addEventListener('click', () => {
+    searchContainer.classList.remove('active');
+    mainSearch.value = '';
+    searchResults.style.display = 'none';
+});
+
+// Search functionality
+mainSearch.addEventListener('input', debounce(handleSearch, 500));
+
+async function handleSearch(e) {
+    const query = e.target.value.trim();
+    if (query.length < 2) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        displaySearchResults(data.results);
+    } catch (error) {
+        console.error('Search error:', error);
+    }
+}
+
+// Additional JavaScript functions...
+```
+
+## 4. Database Schema
+
+### 4.1 Users Table
+```
+Table: user
+- id: Integer (Primary Key)
+- username: String(80), unique, not null
+- email: String(120), unique, not null
+- password_hash: String(128)
+- join_date: DateTime, default=utcnow
+- is_admin: Boolean, default=False
+```
+
+### 4.2 Movies Table
+```
+Table: movie
+- id: Integer (Primary Key)
+- title: String(200), not null
+- description: Text
+- release_year: Integer
+- genre: String(100)
+- rating: Float, default=0.0
+- poster_url: String(500)
+- banner_url: String(500)
+- video_url: String(500)
+- duration: Integer (in minutes)
+- language: String(10), default='en'
+- created_at: DateTime, default=utcnow
+- updated_at: DateTime, default=utcnow, onupdate=utcnow
+```
+
+### 4.3 Watch History Table
+```
+Table: watch_history
+- id: Integer (Primary Key)
+- user_id: Integer (Foreign Key -> user.id)
+- movie_id: Integer (Foreign Key -> movie.id)
+- watched_at: DateTime, default=utcnow
+- progress: Integer (in seconds), default=0
+```
+
+## 5. Setup Instructions
+
+### 5.1 Prerequisites
+- Python 3.8+
+- Node.js 14+ (for frontend assets)
+- SQLite (for development)
+
+### 5.2 Backend Setup
+```bash
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Initialize the database
+flask db upgrade
+python import_movies.py  # Import sample movies
+
+# Run the development server
+flask run
+```
+
+### 5.3 Frontend Setup
+```bash
+# Install Node.js dependencies (if any)
+npm install
+
+# Build frontend assets (if using a build system)
+npm run build
+```
+
+## 6. Configuration
+
+### 6.1 Environment Variables
+Create a `.env` file in the project root:
+```
+FLASK_APP=app.py
+FLASK_ENV=development
+SECRET_KEY=your-secret-key
+DATABASE_URL=sqlite:///streamify.db
+```
+
+## 7. Deployment
+
+### 7.1 Production Deployment
+For production deployment, consider using:
+- Web Server: Gunicorn or uWSGI
+- Database: PostgreSQL or MySQL
+- Caching: Redis
+- Static Files: AWS S3 or CloudFront
+
+### 7.2 Deployment Steps
+1. Set up a production-ready database
+2. Configure environment variables
+3. Set up a WSGI server
+4. Configure a reverse proxy (Nginx/Apache)
+5. Set up SSL certificates
+6. Configure logging and monitoring
+
+## 8. API Endpoints
+
+### 8.1 Authentication
+- `POST /api/login` - User login
+- `POST /api/register` - User registration
+- `POST /api/logout` - User logout
+
+### 8.2 Movies
+- `GET /api/movies` - List all movies
+- `GET /api/movies/<id>` - Get movie details
+- `GET /api/movies/search?q=<query>` - Search movies
+
+### 8.3 User Actions
+- `POST /api/watchlist` - Add to watchlist
+- `POST /api/favorites` - Add to favorites
+- `POST /api/watch-history` - Update watch history
+
+## 9. Testing
+
+### 9.1 Running Tests
+```bash
+python -m pytest tests/
+```
+
+### 9.2 Test Coverage
+```bash
+coverage run -m pytest
+docker-compose up --build
+```
+
+## 10. Troubleshooting
+
+### 10.1 Common Issues
+1. **Database connection issues**: Verify database URL in `.env`
+2. **Static files not loading**: Check Flask's static folder configuration
+3. **CSRF token errors**: Ensure forms include `{{ form.csrf_token }}`
+
+### 10.2 Getting Help
+For support, please open an issue on our GitHub repository or contact support@streamify.com
+
+---
+
+This documentation provides a comprehensive overview of the Streamify OTT platform. For more detailed information, please refer to the inline code comments and the project's README file.

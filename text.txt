@@ -1,0 +1,443 @@
+Streamify is a modern full-stack streaming platform that integrates a lightweight Python Flask backend with a sleek, mobile-friendly frontend built using React Native. Designed to deliver a Netflix-like user experience, it enables users to browse, watch, and manage movies through a clean and responsive interface.
+
+Built with a focus on cross-platform compatibility, Streamify works seamlessly across Android, iOS, and web, making it an ideal foundation for OTT applications. The backend serves dynamic content via RESTful APIs, while the frontend brings it to life with interactive UI components and animations.
+
+
+📆 Full-Stack OTT App with Flask Backend and React Native Mobile Frontend (Without Docker)
+
+This documentation explains the setup of the Streamify OTT App, a full-stack movie streaming platform where:
+
+The backend is developed using Python Flask and serves RESTful APIs.
+
+The mobile frontend is built using React Native with Expo (CLI v53).
+
+The app supports cross-platform development for Android and iOS.
+
+Both backend and frontend run directly on your local machine.
+
+📁 Folder Structure
+
+streamify-app/
+├── backend/                    # Flask backend (REST API)
+│   ├── app.py                 # Main entry point with full setup
+│   ├── models.py              # Database models
+│   ├── recommendation.py      # Recommendation system logic
+│   ├── requirements.txt       # Backend dependencies
+│   ├── routes/                # API routes
+│   │   └── main_routes.py
+│   ├── utils/                 # Utility scripts
+│   │   └── movie_importer.py
+│   └── extensions.py          # db, login manager setup
+├── mobile-app/                # React Native frontend
+│   ├── App.js                 # Main app logic
+│   └── package.json           # Frontend dependencies
+└── README.md                  # Project overview and setup
+
+⚙️ Step-by-Step Setup
+
+1. Backend - Flask API
+
+backend/app.py
+
+from flask import Flask
+import os
+from extensions import db, login_manager
+from utils import import_movies_from_csv
+
+def create_app():
+    app = Flask(__name__)
+
+    # Configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///streamify.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = 'main.login'
+
+    from routes import init_app as init_routes
+    init_routes(app)
+
+    from models import User, Movie, WatchHistory, Watchlist, Favorite, Subscription, Payment, Notification
+
+    with app.app_context():
+        db.create_all()
+        if not User.query.first():
+            from werkzeug.security import generate_password_hash
+            admin = User(
+                username='admin',
+                email='admin@example.com',
+                password_hash=generate_password_hash('admin123')
+            )
+            db.session.add(admin)
+            db.session.commit()
+
+        if not Movie.query.first():
+            print("No movies found in database. Starting import...")
+            try:
+                import_movies_from_csv()
+                print("Movie import completed successfully!")
+            except Exception as e:
+                print(f"Error during movie import: {e}")
+
+    return app
+
+app = create_app()
+
+from models import User
+
+@login_manager.user_loader
+
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+backend/requirements.txt
+
+flask
+flask-cors
+flask-sqlalchemy
+flask-login
+werkzeug
+python-dotenv
+pandas
+numpy
+scikit-learn
+
+Run Backend Locally
+
+cd backend
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+
+2. Frontend - React Native (Expo CLI v53)
+
+mobile-app/package.json
+
+{
+  "name": "mobile-app",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~53.0.0",
+    "react": "18.2.0",
+    "react-native": "0.74.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
+}
+
+mobile-app/App.js
+
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function App() {
+  const [message, setMessage] = useState("Loading...");
+
+  useEffect(() => {
+    fetch("http://192.168.1.100:5000/api/hello") // Replace with your IP
+      .then((res) => res.json())
+      .then((data) => setMessage(data.message || "No message"))
+      .catch(() => setMessage("Failed to load"));
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>{message}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  text: { fontSize: 24 }
+});
+
+Run Frontend Locally
+
+cd mobile-app
+expo --version  # check CLI installed
+npm install -g expo-cli  # if not installed
+npm install
+npm start
+
+▶️ Running the App
+
+Start Flask Backend
+
+cd backend
+source venv/bin/activate
+python app.py
+
+Start React Native Frontend
+
+cd mobile-app
+npm start
+
+Access the App on Mobile
+
+Ensure both mobile and computer are on the same Wi-Fi
+
+Update IP in App.js to your machine’s IP (e.g., http://192.168.1.100:5000/api/hello)
+
+Open Expo Go on your phone
+
+Scan the QR code in the terminal or browser
+
+✅ Success Criteria
+
+Backend initializes DB, imports movies, and creates admin
+
+Mobile app fetches and displays hello message or dynamic content
+
+Expo Go runs the app on mobile
+
+📀 Optional Enhancements
+
+Use .env for environment configuration
+
+Add full /movies, /login, /watchlist APIs
+
+Integrate authentication (JWT)
+
+Use axios instead of fetch
+
+Add navigation using React Navigation
+
+Show movie cards with real data from backend
+
+Let me know if you'd like to build login screens, movie UI, or recommendation integration next!
+
+
+✅ Step-by-Step Plan to Build Streamify Mobile Frontend
+Each step results in a working, testable page.
+
+🔹 Step 1: Set Up Project & Fetch Hello from Backend
+Goal: Confirm basic communication with the Flask API.
+
+Initialize Expo project (npx create-expo-app mobile-app)
+
+Install dependencies (if needed).
+
+Create App.js to fetch and display /api/hello message.
+
+
+Goal: Confirm basic communication with the Flask API.
+
+Create App.js in mobile-app/:
+
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function App() {
+  const [message, setMessage] = useState("Loading...");
+
+  useEffect(() => {
+    fetch("http://192.168.1.100:5000/api/hello") // Replace with your IP
+      .then(res => res.json())
+      .then(data => setMessage(data.message || "No message"))
+      .catch(() => setMessage("Failed to load"));
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.text}>{message}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  text: { fontSize: 24 }
+});
+
+
+
+Test:
+
+Backend running on http://<your-ip>:5000
+
+Mobile shows: "Hello from Streamify"
+
+🔹 Step 2: Create Navigation Structure
+Goal: Set up tab or stack navigation.
+
+Install React Navigation:
+
+bash
+Copy
+Edit
+npx expo install react-native-screens react-native-safe-area-context @react-navigation/native @react-navigation/native-stack
+Create:
+
+Goal: Set up stack navigation between Home and Login screens.
+
+mobile-app/navigation/AppNavigator.js
+
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+
+const Stack = createNativeStackNavigator();
+
+export default function AppNavigator() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+mobile-app/screens/HomeScreen.js
+
+import React from 'react';
+import { View, Text, Button } from 'react-native';
+
+export default function HomeScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Home Screen</Text>
+      <Button title="Go to Login" onPress={() => navigation.navigate('Login')} />
+    </View>
+  );
+}
+
+mobile-app/screens/LoginScreen.js
+
+import React from 'react';
+import { View, Text, Button } from 'react-native';
+
+export default function LoginScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Login Screen</Text>
+      <Button title="Go to Home" onPress={() => navigation.navigate('Home')} />
+    </View>
+  );
+}
+
+Modify App.js
+
+import AppNavigator from './navigation/AppNavigator';
+export default function App() {
+  return <AppNavigator />;
+}
+
+
+
+
+
+js
+Copy
+Edit
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+Test:
+
+App navigates between Home and Login screens using buttons.
+
+🔹 Step 3: Build Home Page - Movie List (Static)
+Goal: Display a grid of dummy movie posters using FlatList.
+
+Create components/MovieCard.js
+
+Populate HomeScreen with 4-5 hardcoded movies.
+
+Test:
+
+App displays a grid layout with poster images and movie titles.
+
+🔹 Step 4: Fetch Movies from Backend /movies
+Goal: Replace hardcoded data with real data from Flask API.
+
+Use useEffect() to fetch /movies
+
+Use movie poster_url, title, rating in cards.
+
+Test:
+
+HomeScreen shows real movies from backend.
+
+🔹 Step 5: Build Movie Detail Page
+Goal: Show details when a movie is tapped.
+
+On MovieCard press → navigate to MovieDetailScreen
+
+Fetch movie from /movies/<id>
+
+Display title, banner, description, genre, rating, etc.
+
+Test:
+
+Clicking a movie opens the detail screen with correct info.
+
+🔹 Step 6: Implement Login Screen
+Goal: Allow user to login via /login.
+
+Build form with username, password
+
+On submit → POST to /login
+
+Store JWT token in AsyncStorage
+
+Test:
+
+Successful login navigates to Home with token stored
+
+🔹 Step 7: Show Watchlist & Add Functionality
+Goal: Show and manage user’s watchlist.
+
+Add /watchlist screen in tab bar
+
+Show list of watchlisted movies
+
+Add "Add to Watchlist" button on movie detail screen → POST /watchlist/<id>
+
+Test:
+
+Movie is added/removed from watchlist and shown correctly.
+
+🔹 Step 8: Add Profile and Logout
+Goal: Add profile screen and logout functionality.
+
+Create ProfileScreen with user info
+
+Add Logout button → clears token and navigates to Login
+
+Test:
+
+App resets after logout, token is removed.
+
+🔹 Step 9: Final Polish
+Goal: UI polish, loading states, error handling
+
+Add loading spinners (ActivityIndicator)
+
+Handle API errors
+
+Improve movie layout, colors, fonts
+
+Add splash screen/logo (optional)
+
