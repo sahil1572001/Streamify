@@ -33,27 +33,26 @@ yarn-error.log
 .env.test.local
 .env.production.local
 
-# Mobile App - Only exclude build outputs and dependencies
-mobile-app/node_modules/
-mobile-app/.expo/
-mobile-app/web-build/
-mobile-app/dist/
-mobile-app/*.apk
-mobile-app/*.aab
-mobile-app/*.ipa
-mobile-app/.expo-shared/
-mobile-app/.expo/
+# Mobile App - Exclude only build outputs and dependencies
+/mobile-app/node_modules/
+/mobile-app/.expo/
+/mobile-app/web-build/
+/mobile-app/dist/
+/mobile-app/*.apk
+/mobile-app/*.aab
+/mobile-app/*.ipa
+/mobile-app/.expo-shared/
+/mobile-app/.expo/
 
-# Include all other files in mobile-app
-mobile-app/**/*
-!mobile-app/node_modules/
-!mobile-app/.expo/
-!mobile-app/web-build/
-!mobile-app/dist/
-!mobile-app/*.apk
-!mobile-app/*.aab
-!mobile-app/*.ipa
-!mobile-app/.expo-shared/
+# Include all source files
+!/mobile-app/src/
+!/mobile-app/assets/
+!/mobile-app/App.tsx
+!/mobile-app/app.json
+!/mobile-app/package.json
+!/mobile-app/package-lock.json
+!/mobile-app/tsconfig.json
+!/mobile-app/babel.config.js
 
 # Database
 *.sqlite
