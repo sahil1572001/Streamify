@@ -41,8 +41,7 @@ yarn-error.log
 /mobile-app/*.apk
 /mobile-app/*.aab
 /mobile-app/*.ipa
-/mobile-app/.expo-shared/
-/mobile-app/.expo/
+
 
 # Include all source files
 !/mobile-app/src/
@@ -53,6 +52,8 @@ yarn-error.log
 !/mobile-app/package-lock.json
 !/mobile-app/tsconfig.json
 !/mobile-app/babel.config.js
+/mobile-app/.expo-shared/
+/mobile-app/.expo/
 
 # Database
 *.sqlite
