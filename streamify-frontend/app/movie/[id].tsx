@@ -10,6 +10,8 @@ import {
   useWindowDimensions,
   FlatList,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,8 +19,9 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import MovieCard from '../../components/MovieCard';
 import { authService } from '../../services/authService';
+import { API_CONFIG } from '../../config/api';
 
-const API_URL = 'http://localhost:8080';
+const API_URL = API_CONFIG.BASE_URL;
 
 interface Movie {
   id: number;
@@ -47,6 +50,10 @@ export default function MovieDetailsScreen() {
   const [similarMovies, setSimilarMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [inWatchlist, setInWatchlist] = useState(false);
+  const [inVisionBoard, setInVisionBoard] = useState(false);
+  const [showVisionBoardModal, setShowVisionBoardModal] = useState(false);
+  const [visionBoardPriority, setVisionBoardPriority] = useState<'high' | 'medium' | 'low'>('medium');
+  const [visionBoardNotes, setVisionBoardNotes] = useState('');
 
   const isMobile = windowWidth < 768;
   const isTablet = windowWidth >= 768 && windowWidth < 1200;
@@ -117,6 +124,47 @@ export default function MovieDetailsScreen() {
       console.error('Error toggling watchlist:', error);
       Alert.alert('Error', 'Failed to update watchlist');
     }
+  };
+
+  const handleAddToVisionBoard = async () => {
+    try {
+      const token = await authService.getToken();
+      if (!token) {
+        Alert.alert('Sign In Required', 'Please sign in to use Vision Board');
+        return;
+      }
+
+      await axios.post(
+        `${API_URL}/api/vision-board/`,
+        {
+          movie_id: movie?.id,
+          priority: visionBoardPriority,
+          notes: visionBoardNotes,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setInVisionBoard(true);
+      setShowVisionBoardModal(false);
+      setVisionBoardNotes('');
+      Alert.alert('Success', 'Added to Vision Board! 🎬');
+    } catch (error: any) {
+      console.error('Error adding to vision board:', error);
+      if (error.response?.status === 400) {
+        Alert.alert('Already Added', 'This movie is already in your Vision Board');
+      } else {
+        Alert.alert('Error', 'Failed to add to Vision Board');
+      }
+    }
+  };
+
+  const openVisionBoardModal = () => {
+    const token = authService.getToken();
+    if (!token) {
+      Alert.alert('Sign In Required', 'Please sign in to use Vision Board');
+      return;
+    }
+    setShowVisionBoardModal(true);
   };
 
   const handleMoviePress = (movieId: number) => {
@@ -226,12 +274,27 @@ export default function MovieDetailsScreen() {
               {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
             </Text>
           </TouchableOpacity>
-          {movie.trailer_url && (
-            <TouchableOpacity style={[styles.trailerBtn, { flex: isMobile ? 0 : 1 }]}>
-              <Ionicons name="play-circle-outline" size={24} color="#fff" />
-              <Text style={styles.trailerBtnText}>Watch Trailer</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={[styles.visionBoardBtn, { flex: isMobile ? 0 : 1 }]}
+            onPress={openVisionBoardModal}
+            disabled={inVisionBoard}
+          >
+            <LinearGradient
+              colors={inVisionBoard ? ['#444', '#333'] : ['#FF6B6B', '#EE5A6F']}
+              style={styles.visionBoardGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <Ionicons
+                name={inVisionBoard ? 'checkmark-circle' : 'film'}
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.visionBoardBtnText}>
+                {inVisionBoard ? 'In Vision Board' : 'Add to Vision Board'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         {/* Description */}
@@ -286,6 +349,106 @@ export default function MovieDetailsScreen() {
           </View>
         )}
       </View>
+
+      {/* Vision Board Modal */}
+      <Modal
+        visible={showVisionBoardModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowVisionBoardModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add to Vision Board</Text>
+              <TouchableOpacity onPress={() => setShowVisionBoardModal(false)}>
+                <Ionicons name="close" size={28} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSubtitle}>Set your watch priority</Text>
+
+            {/* Priority Selection */}
+            <View style={styles.priorityContainer}>
+              <TouchableOpacity
+                style={styles.priorityOption}
+                onPress={() => setVisionBoardPriority('high')}
+              >
+                <LinearGradient
+                  colors={visionBoardPriority === 'high' ? ['#FF6B6B', '#EE5A6F'] : ['#333', '#222']}
+                  style={styles.priorityCard}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="flame" size={32} color="#fff" />
+                  <Text style={styles.priorityLabel}>Must Watch</Text>
+                  <Text style={styles.priorityDesc}>High Priority</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.priorityOption}
+                onPress={() => setVisionBoardPriority('medium')}
+              >
+                <LinearGradient
+                  colors={visionBoardPriority === 'medium' ? ['#FFD93D', '#F6C744'] : ['#333', '#222']}
+                  style={styles.priorityCard}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="star" size={32} color="#fff" />
+                  <Text style={styles.priorityLabel}>Soon</Text>
+                  <Text style={styles.priorityDesc}>Medium Priority</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.priorityOption}
+                onPress={() => setVisionBoardPriority('low')}
+              >
+                <LinearGradient
+                  colors={visionBoardPriority === 'low' ? ['#6BCF7F', '#51B96B'] : ['#333', '#222']}
+                  style={styles.priorityCard}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="time" size={32} color="#fff" />
+                  <Text style={styles.priorityLabel}>Someday</Text>
+                  <Text style={styles.priorityDesc}>Low Priority</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* Notes Input */}
+            <Text style={styles.notesLabel}>Notes (Optional)</Text>
+            <TextInput
+              style={styles.notesInput}
+              placeholder="Why do you want to watch this?"
+              placeholderTextColor="#666"
+              value={visionBoardNotes}
+              onChangeText={setVisionBoardNotes}
+              multiline
+              numberOfLines={3}
+            />
+
+            {/* Add Button */}
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddToVisionBoard}
+            >
+              <LinearGradient
+                colors={['#FF6B6B', '#EE5A6F']}
+                style={styles.addButtonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="add-circle" size={24} color="#fff" />
+                <Text style={styles.addButtonText}>Add to Vision Board</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -477,5 +640,105 @@ const styles = StyleSheet.create({
   },
   similarMoviesList: {
     paddingRight: 20,
+  },
+  visionBoardBtn: {
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  visionBoardGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  visionBoardBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#1a1a1a',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#888',
+    marginBottom: 20,
+  },
+  priorityContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  priorityOption: {
+    flex: 1,
+  },
+  priorityCard: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 8,
+  },
+  priorityLabel: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  priorityDesc: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 11,
+  },
+  notesLabel: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  notesInput: {
+    backgroundColor: '#0a0a0a',
+    borderRadius: 12,
+    padding: 16,
+    color: '#fff',
+    fontSize: 15,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 24,
+  },
+  addButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  addButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

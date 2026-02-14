@@ -51,6 +51,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Allow extra fields from .env
     
     @property
     def database_url(self) -> str:

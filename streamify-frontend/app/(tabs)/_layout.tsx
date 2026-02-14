@@ -52,6 +52,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="vision-board"
+        options={{
+          title: 'Vision Board',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="film" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',

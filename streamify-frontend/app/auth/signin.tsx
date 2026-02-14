@@ -15,8 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { authService } from '../../services/authService';
-
-const API_URL = 'http://localhost:8080';
+import { API_CONFIG } from '../../config/api';
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -40,7 +39,7 @@ export default function SignInScreen() {
       formData.append('username', email);
       formData.append('password', password);
 
-      const response = await axios.post(`${API_URL}/login`, formData, {
+      const response = await axios.post(`${API_CONFIG.BASE_URL}/login`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -60,7 +59,7 @@ export default function SignInScreen() {
       // Fetch user data to store
       try {
         console.log('📡 Fetching user data with token...');
-        const userResponse = await axios.get(`${API_URL}/api/users/me`, {
+        const userResponse = await axios.get(`${API_CONFIG.BASE_URL}/api/users/me`, {
           headers: { Authorization: `Bearer ${access_token}` }
         });
         await authService.setUser(userResponse.data);

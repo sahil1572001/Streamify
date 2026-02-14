@@ -15,8 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:8080';
+import { API_CONFIG } from '../../config/api';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -48,7 +47,8 @@ export default function SignUpScreen() {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/register`, {
+      console.log('Attempting signup with:', { email, full_name: fullName });
+      const response = await axios.post(`${API_CONFIG.BASE_URL}/register`, {
         email,
         password,
         full_name: fullName,

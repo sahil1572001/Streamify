@@ -13,8 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { authService } from '../../services/authService';
-
-const API_URL = 'http://localhost:8080';
+import { API_CONFIG } from '../../config/api';
 
 interface WatchlistItem {
   id: number;
@@ -56,7 +55,7 @@ export default function WatchlistScreen() {
       console.log('📡 Fetching watchlist from API...');
       console.log('Token:', token.substring(0, 20) + '...');
       
-      const response = await axios.get(`${API_URL}/api/watchlist/`, {
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/api/watchlist/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -69,11 +68,17 @@ export default function WatchlistScreen() {
         console.error('Response status:', error.response?.status);
         console.error('Response data:', error.response?.data);
         
-        // If 401, token is invalid
+        // If 401, token is invalid or expired
         if (error.response?.status === 401) {
-          console.log('🔐 Token invalid - clearing and prompting re-login');
-          await authService.removeToken();
-          Alert.alert('Session Expired', 'Please sign in again');
+          console.log('🔐 Token expired or invalid - clearing and redirecting to login');
+          await authService.logout();
+          Alert.alert(
+            'Session Expired', 
+            'Your session has expired. Please sign in again.',
+            [
+              { text: 'OK', onPress: () => router.replace('/auth/signin') }
+            ]
+          );
         }
       }
       setLoading(false);
@@ -85,7 +90,7 @@ export default function WatchlistScreen() {
       const token = await authService.getToken();
       if (!token) return;
 
-      await axios.delete(`${API_URL}/api/watchlist/${watchlistItemId}`, {
+      await axios.delete(`${API_CONFIG.BASE_URL}/api/watchlist/${watchlistItemId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

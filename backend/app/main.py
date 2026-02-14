@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import auth, users, movies, watchlist, search
+from .routers import auth, users, movies, watchlist, search, vision_board
 from .database import engine, Base, SessionLocal
 from . import models
 from .models import Movie
@@ -34,7 +34,7 @@ app = FastAPI(title="Streamify API",
 # CORS Middleware - MUST be added before routes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8081", "http://127.0.0.1:8081", "http://localhost:19006"],
+    allow_origins=["*"],  # Allow all origins for development (Expo uses dynamic ports)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,6 +47,7 @@ app.include_router(users.router)
 app.include_router(movies.router)
 app.include_router(watchlist.router)
 app.include_router(search.router)
+app.include_router(vision_board.router)
 
 @app.get("/")
 async def root():

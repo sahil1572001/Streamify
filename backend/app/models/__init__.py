@@ -5,6 +5,7 @@ from ..database import Base
 from .user import User
 from .movie import Movie
 from .watchlist import Watchlist
+from .vision_board import VisionBoard
 
 # Create a base class for all models
 # Base = declarative_base()  # This line is commented out as it's not needed due to the import from ..database
@@ -14,5 +15,6 @@ __all__ = [
     'Base',
     'User',
     'Movie',
-    'Watchlist'
+    'Watchlist',
+    'VisionBoard'
 ]
